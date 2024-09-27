@@ -18,6 +18,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from app.engine.engine import get_chat_engine
+from pydantic import BaseModel 
 
 app = FastAPI()
 
@@ -36,6 +38,16 @@ if environment == "dev":
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    chat_engine = get_chat_engine()
+    
+    class ChatMessage(BaseModel):
+        content: str
+        
+    @app.post('/api/chat')
+    async def chat(message: ChatMessage):
+        response = chat_engine.chat(message.content)
+        return {'content': str(response)}
 
     # Redirect to documentation page when accessing base URL
     @app.get("/")
